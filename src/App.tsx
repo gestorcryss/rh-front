@@ -40,6 +40,7 @@ import ContratosList from "./pages/Contratos/List";
 import CreateContrato from "./pages/Contratos/Create";
 import EditContrato from "./pages/Contratos/Edit";
 import ShowContrato from "./pages/Contratos/Show";
+import ShowFuncionario from "./pages/Funcionarios/Show";
 
 
 // ============================================================
@@ -82,7 +83,8 @@ export default function App() {
               <Route path="/funcionarios" element={<FuncionariosList />} />
               <Route path="/funcionarios/novo" element={<CreateFuncionario />} />
               <Route path="/funcionarios/:id/editar" element={<EditFuncionario />} />
-              {/*<Route path="/funcionarios/:id" element={<FuncionariosList />} />
+              <Route path="/funcionarios/:id" element={<ShowFuncionario />} />
+              {/*
               <Route path="/funcionarios/dados-pessoais" element={<FuncionariosList />} />
 */}
               {/* Contratos */}
