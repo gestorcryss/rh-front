@@ -109,7 +109,13 @@ const CreateFuncionario: React.FC = () => {
   const departamentos = departamentosData?.data?.data || [];
   const funcoes = funcoesData?.data?.data || [];
   const tiposContrato = tiposContratoData?.data?.data || [];
-  const rubricas = rubricasData?.data?.data || [];
+  const rubricas = (rubricasData?.data?.data || []) as {
+    id: number;
+    codigo: string;
+    nome: string;
+    tipo: string;
+    descricao?: string;
+  }[];
 
   // MUTATIONS
   const createFuncionario = useMutation({

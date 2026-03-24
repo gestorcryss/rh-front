@@ -11,11 +11,6 @@ import {
   ChevronLeftIcon,
   PencilIcon,
   DocumentArrowDownIcon,
-  UserIcon,
-  BriefcaseIcon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-  CalendarIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
@@ -367,7 +362,7 @@ const ShowFuncionario: React.FC = () => {
                   const isActive = c.status === "ATIVO";
                   return (
                     <div
-                      key={c.id}
+                      key={index}
                       className={`rounded-lg border p-3 ${
                         isActive ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800"
                       }`}

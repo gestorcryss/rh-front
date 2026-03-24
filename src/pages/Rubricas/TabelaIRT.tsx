@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { configTributariaService, TabelaIRT } from "../../services/configTributaria";
+import { configTributariaService, type TabelaIRT } from "../../services/configTributaria";
 
 import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Button from "../../components/ui/button/Button";
