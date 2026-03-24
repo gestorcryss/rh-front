@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { configTributariaService, TabelaIRT } from "../../services/configTributaria";
-import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import ConfirmModal from "../ui/modal/ConfirmModal";
+
 import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import Button from "../../components/ui/button/Button";
+import Input from "../../components/form/input/InputField";
+import ConfirmModal from "../../components/ui/modal/ConfirmModal";
 
 interface TabelaIRTProps {
   configId: number;
@@ -163,7 +164,6 @@ const TabelaIRT: React.FC<TabelaIRTProps> = ({ configId }) => {
                 <td className="px-4 py-2">
                   <Input
                     type="number"
-                    step="0.01"
                     value={formData.taxa_percentual}
                     onChange={(e) => setFormData({ ...formData, taxa_percentual: Number(e.target.value) })}
                     className="w-24"
@@ -222,7 +222,6 @@ const TabelaIRT: React.FC<TabelaIRTProps> = ({ configId }) => {
                     <td className="px-4 py-2">
                       <Input
                         type="number"
-                        step="0.01"
                         value={formData.taxa_percentual}
                         onChange={(e) => setFormData({ ...formData, taxa_percentual: Number(e.target.value) })}
                         className="w-24"

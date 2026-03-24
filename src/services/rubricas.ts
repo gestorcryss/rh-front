@@ -11,6 +11,17 @@ export interface Rubrica {
   created_at: string;
   updated_at: string;
 }
+export interface TabelaIRT{
+  id: number;
+  config_tributaria_id: number;
+  limite_inferior: number;
+  limite_superior: number | null;
+  parcela_fixa: number;
+  taxa_percentual: number;
+  valor_deduzir: number;
+  data_inicio_vigencia: string;
+  data_fim_vigencia: string | null;
+}
 
 export interface RubricaVersao {
   id: number;
@@ -84,6 +95,9 @@ const rubricasService = {
   
   delete: (id: number) => 
     api.delete(`/v1/rubricas/${id}`),
+  
+  getVersoes: (rubricaId: number, params?: { page?: number; per_page?: number }) =>
+    api.get<{ data: ListResponse<RubricaVersao> }>(`/v1/rubricas/${rubricaId}/versoes`, { params }),
   
   createVersao: (data: Partial<RubricaVersao>) =>
     api.post<{ data: RubricaVersao }>('/v1/rubricas/versoes', data),

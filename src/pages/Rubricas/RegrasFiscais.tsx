@@ -62,8 +62,10 @@ const RegrasFiscais: React.FC = () => {
   }
 
   return (
-    <>
-      <PageMeta title={`Regras Fiscais - ${rubrica.nome}`} />
+    <> 
+      <PageMeta 
+      title={`Regras Fiscais - ${rubrica.nome}`}
+      description="Gestão de regras fiscais" />
 
       <div className="space-y-6">
         {/* Header */}

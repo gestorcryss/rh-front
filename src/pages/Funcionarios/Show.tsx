@@ -194,7 +194,7 @@ const ShowFuncionario: React.FC = () => {
         {/* Conteúdo da ficha */}
         <div id="ficha-funcionario" className="space-y-6">
           {/* Dados Pessoais */}
-          <ComponentCard title="Dados Pessoais" icon={<UserIcon className="h-5 w-5" />}>
+          <ComponentCard title="Dados Pessoais" >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <p className="text-sm text-gray-500">Gênero</p>
@@ -236,7 +236,7 @@ const ShowFuncionario: React.FC = () => {
           </ComponentCard>
 
           {/* Dados Profissionais */}
-          <ComponentCard title="Dados Profissionais" icon={<BriefcaseIcon className="h-5 w-5" />}>
+          <ComponentCard title="Dados Profissionais" >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <p className="text-sm text-gray-500">Departamento</p>
@@ -254,7 +254,7 @@ const ShowFuncionario: React.FC = () => {
           </ComponentCard>
 
           {/* Dados Contratuais */}
-          <ComponentCard title="Dados Contratuais" icon={<DocumentTextIcon className="h-5 w-5" />}>
+          <ComponentCard title="Dados Contratuais" >
             {contratoAtivo ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -303,7 +303,7 @@ const ShowFuncionario: React.FC = () => {
           </ComponentCard>
 
           {/* Estrutura Salarial */}
-          <ComponentCard title="Estrutura Salarial" icon={<CurrencyDollarIcon className="h-5 w-5" />}>
+          <ComponentCard title="Estrutura Salarial" >
             {estruturaAtiva?.itens && estruturaAtiva.itens.length > 0 ? (
               <div className="space-y-4">
                 <div className="overflow-x-auto">
@@ -360,7 +360,7 @@ const ShowFuncionario: React.FC = () => {
 
           {/* Histórico de Contratos */}
           {funcionario.contratos && funcionario.contratos.length > 1 && (
-            <ComponentCard title="Histórico de Contratos" icon={<CalendarIcon className="h-5 w-5" />}>
+            <ComponentCard title="Histórico de Contratos" >
               <div className="space-y-3">
                 {funcionario.contratos.slice(0, 5).map((c: any, index: number) => {
                   const versao = c.versoes?.[0];
@@ -405,7 +405,7 @@ const ShowFuncionario: React.FC = () => {
 
           {/* Acesso ao Sistema */}
           {funcionario.usuario && (
-            <ComponentCard title="Acesso ao Sistema" icon={<EnvelopeIcon className="h-5 w-5" />}>
+            <ComponentCard title='Acesso ao Sistema'>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <p className="text-sm text-gray-500">Username</p>
