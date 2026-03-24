@@ -1,6 +1,10 @@
 import api from "./api";
 
 export const contratosService = {
+  // Listar todos os contratos (visão global)
+  listAll: (params?: { status?: string; search?: string; page?: number; per_page?: number }) =>
+    api.get("/v1/contratos", { params }),
+
   // Listar contratos de um funcionário
   list: (funcionarioId: number, params?: { status?: string }) =>
     api.get(`/v1/funcionarios/${funcionarioId}/contratos`, { params }),

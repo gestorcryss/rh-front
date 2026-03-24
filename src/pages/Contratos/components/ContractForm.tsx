@@ -26,6 +26,7 @@ const ContractForm: React.FC<ContractFormProps> = ({
   };
 
   const selectedTipo = tiposContrato.find(t => t.id === data.tipo_contrato_id);
+  const lockHeaderFields = isEdit;
 
   return (
     <div className="space-y-6">
@@ -49,7 +50,7 @@ const ContractForm: React.FC<ContractFormProps> = ({
           <select
             value={data.tipo_contrato_id || ""}
             onChange={(e) => handleChange("tipo_contrato_id", Number(e.target.value))}
-            disabled={isLoading}
+            disabled={isLoading || lockHeaderFields}
             className="w-full rounded-lg border border-gray-300 bg-transparent py-2.5 px-4 text-gray-800 outline-none focus:border-primary disabled:opacity-50 dark:border-gray-700 dark:text-white"
           >
             <option value="">Selecione o tipo de contrato</option>
@@ -76,6 +77,7 @@ const ContractForm: React.FC<ContractFormProps> = ({
             value={data.data_inicio}
             onChange={(e) => handleChange("data_inicio", e.target.value)}
             error={!!errors.data_inicio}
+            disabled={lockHeaderFields}
           />
           {errors.data_inicio && (
             <p className="mt-1 text-sm text-error-500">{errors.data_inicio}</p>

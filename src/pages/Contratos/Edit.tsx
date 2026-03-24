@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { contratosService } from "../../services/contratos";
 import PageMeta from "../../components/common/PageMeta";
@@ -10,6 +11,43 @@ import ContractForm from "./components/ContractForm";
 import VersionHistory from "./components/VersionHistory";
 import { ContratoFormData, TipoContrato } from "./components/types";
 import { ChevronLeftIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+
+interface ApiErrorResponse {
+    message?: string;
+    errors?: Record<string, string[]> | Record<string, string>;
+}
+
+type ContratoApi = {
+    id: number;
+    funcionario_id: number;
+    tipo_contrato_id: number;
+    data_inicio: string;
+    data_fim: string | null;
+    status: ContratoFormData["status"] | "ENCERRADO";
+    versao_atual?: {
+        salario_base: number | string;
+        carga_horaria: number;
+        regime_trabalho: string | null;
+    };
+    versoes?: Array<{
+        id: number;
+        salario_base: number | string;
+        carga_horaria: number;
+        regime_trabalho: string | null;
+        data_inicio_vigencia: string;
+        data_fim_vigencia: string | null;
+    }>;
+};
+
+const toDateInput = (iso: string | null | undefined) => (iso ? String(iso).slice(0, 10) : "");
+const toNumber = (v: unknown, fallback = 0) => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (typeof v === "string") {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : fallback;
+    }
+    return fallback;
+};
 
 const EditContrato: React.FC = () => {
     const navigate = useNavigate();
@@ -50,18 +88,23 @@ const EditContrato: React.FC = () => {
         },
     });
 
-    const contratoRaw = contratoData?.data;
-    const tiposContrato: TipoContrato[] = tiposData?.data?.data || tiposData?.data || [];
-
-    console.log("🔍 contratoRaw:", contratoRaw);
-    console.log("🔍 contratoRaw?.data:", contratoRaw?.data);
-    console.log("🔍 contratoRaw?.data.versoes:", contratoRaw?.data.versoes);
+    const contratoRaw = contratoData?.data?.data as ContratoApi | undefined;
+    console.log("contratoRaw Actual", contratoRaw);
+    const tiposContrato: TipoContrato[] = tiposData?.data?.data.data || tiposData?.data || [];
+    console.log("tiposContrato Actual", tiposContrato);
+ 
 
     // Popular formulário com dados do contrato
     useEffect(() => {
-        // Tentar diferentes estruturas possíveis da resposta
-        const contrato = contratoRaw?.data || contratoRaw;
-        const versaoAtual = contrato?.versao_atual || contrato?.versaoAtual;
+        const contrato = contratoRaw;
+
+        // API atual: vem `versoes` (array). Escolhemos a versão "ativa" (fim_vigencia null) ou a mais recente.
+        const versoes = contrato?.versoes ?? [];
+        const versaoAtiva =
+            versoes.find((v) => v.data_fim_vigencia === null) ??
+            versoes.slice().sort((a, b) => b.id - a.id)[0];
+
+        const versaoAtual = contrato?.versao_atual ?? versaoAtiva;
 
         console.log("📋 Contrato extraído:", contrato);
         console.log("📋 Versão atual extraída:", versaoAtual);
@@ -69,11 +112,11 @@ const EditContrato: React.FC = () => {
         if (contrato && versaoAtual) {
             const newData = {
                 tipo_contrato_id: contrato.tipo_contrato_id,
-                data_inicio: contrato.data_inicio,
-                data_fim: contrato.data_fim || "",
-                status: contrato.status,
-                salario_base: versaoAtual.salario_base,
-                carga_horaria: versaoAtual.carga_horaria,
+                data_inicio: toDateInput(contrato.data_inicio),
+                data_fim: toDateInput(contrato.data_fim),
+                status: (contrato.status === "ENCERRADO" ? "INATIVO" : contrato.status) as ContratoFormData["status"],
+                salario_base: toNumber(versaoAtual.salario_base, 0),
+                carga_horaria: toNumber(versaoAtual.carga_horaria, 44),
                 regime_trabalho: versaoAtual.regime_trabalho || "",
             };
 
@@ -110,6 +153,20 @@ const EditContrato: React.FC = () => {
         return hasAnyChange;
     };
 
+    const headerChanged = (): boolean => {
+        if (!originalData) return false;
+        return formData.status !== originalData.status || formData.data_fim !== originalData.data_fim;
+    };
+
+    const versionChanged = (): boolean => {
+        if (!originalData) return false;
+        return (
+            formData.salario_base !== originalData.salario_base ||
+            formData.carga_horaria !== originalData.carga_horaria ||
+            formData.regime_trabalho !== originalData.regime_trabalho
+        );
+    };
+
     // Criar nova versão do contrato
     const createVersao = useMutation({
         mutationFn: (data: ContratoFormData) =>
@@ -127,8 +184,8 @@ const EditContrato: React.FC = () => {
             navigate(`/contratos/${contratoId}`);
         },
         onError: (error: unknown) => {
-            const errorObj = error as { response: { data: { message: string } } };
-            const message = errorObj.response?.data?.message || "Erro ao criar nova versão";
+            const apiError = axios.isAxiosError<ApiErrorResponse>(error) ? error : null;
+            const message = apiError?.response?.data?.message || "Erro ao criar nova versão";
             toast.error(message);
             console.error("Erro ao criar versão:", error);
         },
@@ -139,35 +196,29 @@ const EditContrato: React.FC = () => {
         mutationFn: (data: ContratoFormData) => {
             const updateData: {
                 status?: string;
-                data_fim?: string | null | undefined;
+                data_fim?: string | undefined;
             } = {};
 
             if (data.status !== originalData?.status) {
                 updateData.status = data.status;
             }
             if (data.data_fim !== originalData?.data_fim) {
-                updateData.data_fim = data.data_fim || null;
+                updateData.data_fim = data.data_fim || undefined;
             }
 
             console.log("📤 Atualizando contrato com:", updateData);
+            if (Object.keys(updateData).length === 0) {
+                return Promise.resolve({} as never);
+            }
             return contratosService.update(Number(contratoId), updateData);
         },
         onSuccess: () => {
-            const hasVersionChanges =
-                formData.salario_base !== originalData?.salario_base ||
-                formData.carga_horaria !== originalData?.carga_horaria ||
-                formData.regime_trabalho !== originalData?.regime_trabalho;
-
-            if (hasVersionChanges) {
-                createVersao.mutate(formData);
-            } else {
-                toast.success("Contrato atualizado com sucesso!");
-                queryClient.invalidateQueries({ queryKey: ["contrato", contratoId] });
-                navigate(`/contratos/${contratoId}`);
-            }
+            toast.success("Contrato atualizado com sucesso!");
+            queryClient.invalidateQueries({ queryKey: ["contrato", contratoId] });
         },
-        onError: (error: any) => {
-            const message = error.response?.data?.message || "Erro ao atualizar contrato";
+        onError: (error: unknown) => {
+            const apiError = axios.isAxiosError<ApiErrorResponse>(error) ? error : null;
+            const message = apiError?.response?.data?.message || "Erro ao atualizar contrato";
             toast.error(message);
         },
     });
@@ -189,7 +240,24 @@ const EditContrato: React.FC = () => {
             return;
         }
 
-        await updateContrato.mutateAsync(formData);
+        const doHeader = headerChanged();
+        const doVersion = versionChanged();
+
+        try {
+            // Respeita a lógica de versionamento do backend:
+            // - Campos versionados => cria nova versão (não faz update direto desses campos)
+            // - Campos do cabeçalho permitidos => update
+            if (doHeader) {
+                await updateContrato.mutateAsync(formData);
+            }
+            if (doVersion) {
+                await createVersao.mutateAsync(formData);
+            }
+
+            navigate(`/contratos/${contratoId}`);
+        } catch {
+            // Toasts já são exibidos nos handlers dos mutations.
+        }
     };
 
     const resetForm = () => {
@@ -213,7 +281,7 @@ const EditContrato: React.FC = () => {
                 });
 
                 toast.success("Dados da versão carregados. Clique em 'Criar Nova Versão' para salvar.");
-            } catch (error) {
+            } catch {
                 toast.error("Erro ao carregar versão");
             }
         }
@@ -243,6 +311,8 @@ const EditContrato: React.FC = () => {
     }
 
     const hasAnyChange = hasChanges();
+    const willUpdateHeader = headerChanged();
+    const willCreateVersion = versionChanged();
 
     return (
         <>
@@ -255,7 +325,7 @@ const EditContrato: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <div>
                         <Link
-                            to={`/funcionarios/${contratoRaw?.funcionario_id || contratoRaw?.data?.funcionario_id}/contratos`}
+                            to={`/funcionarios/${contratoRaw?.funcionario_id}/contratos`}
                             className="text-sm text-primary hover:underline"
                         >
                             ← Voltar para contratos
@@ -306,9 +376,13 @@ const EditContrato: React.FC = () => {
                                         <ArrowPathIcon className="mr-2 h-5 w-5" />
                                         {updateContrato.isPending || createVersao.isPending
                                             ? "Salvando..."
-                                            : hasAnyChange
-                                                ? "Criar Nova Versão"
-                                                : "Sem Alterações"}
+                                            : willCreateVersion && willUpdateHeader
+                                                ? "Salvar (Atualizar + Nova Versão)"
+                                                : willCreateVersion
+                                                    ? "Criar Nova Versão"
+                                                    : willUpdateHeader
+                                                        ? "Salvar Alterações"
+                                                        : "Sem Alterações"}
                                     </Button>
                                 </div>
                             </form>

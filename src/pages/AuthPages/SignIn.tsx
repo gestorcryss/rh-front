@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
+import axios from "axios";
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
 import SignInForm from "../../components/auth/SignInForm";
 import { useAuth } from "../../context/AuthContext";
+
+interface ApiErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
+}
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,34 +18,26 @@ export default function SignIn() {
   const { login } = useAuth();
 
   const handleLogin = async (email: string, password: string) => {
-    console.log("📞 handleLogin recebeu email:", email);
-    console.log("📞 handleLogin recebeu password:", password ? "***" : "vazio");
-    
     setIsLoading(true);
-    
+
     try {
-      console.log("🔄 Chamando login do contexto com:", email);
       await login(email, password);
-      console.log("✅ Login bem-sucedido, redirecionando...");
       toast.success("Login realizado com sucesso!");
       navigate("/dashboard");
     } catch (error: unknown) {
-      console.error("❌ Erro capturado no handleLogin:", error);
-      
       let errorMessage = "Erro ao fazer login";
-      
-      if (typeof error === "object" && error !== null && "response" in error) {
-        const errObj = error as any;
-        if (errObj.response?.data?.errors) {
-          errorMessage = Object.values(errObj.response.data.errors).flat().join(", ");
-        } else if (errObj.response?.data?.message) {
-          errorMessage = errObj.response.data.message;
+
+      if (axios.isAxiosError<ApiErrorResponse>(error)) {
+        const apiErrors = error.response?.data?.errors;
+        if (apiErrors) {
+          errorMessage = Object.values(apiErrors).flat().join(", ");
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
         }
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
-      console.log("📢 Mensagem de erro:", errorMessage);
+
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

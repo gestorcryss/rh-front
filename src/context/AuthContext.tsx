@@ -1,22 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authService, RegisterData } from '../services/auth';
+import { authService, RegisterData, AuthUser } from '../services/auth';
+import axios from 'axios';
 
 // Tipos
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  ativo: boolean;
-  funcionario?: {
-    id: number;
-    nome_completo: string;
-    numero_mecanografico: string;
-  };
-  roles?: Array<{ id: number; nome: string; slug: string }>;
-}
-
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -27,18 +15,39 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
+      const token = authService.getToken();
+      const cachedUser = authService.getUser();
+
       try {
-        const userData = authService.getUser();
-        if (userData) {
-          setUser(userData);
+        if (!token) {
+          setUser(null);
+          return;
         }
+
+        // Fast path: show cached user immediately (avoid kicking user to login on refresh)
+        if (cachedUser) {
+          setUser(cachedUser);
+        }
+
+        // Validate persisted token when backend supports it
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
       } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+          return;
+        }
+
+        // 404 (or network errors): keep cached user if we have it; otherwise fall back to null.
+        setUser(cachedUser ?? null);
       } finally {
         setLoading(false);
       }
@@ -48,24 +57,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string) => {
-    console.log("📞 AuthContext.login recebeu email:", email);
-    console.log("📞 AuthContext.login recebeu password:", password ? "***" : "vazio");
-    
     if (!email || !password) {
       throw new Error("Email e senha são obrigatórios");
     }
-    
+
     try {
       const response = await authService.login(email, password);
-      console.log("✅ AuthService.login retornou com sucesso");
-      
+
       if (!response.user) {
         throw new Error("Usuário não retornado pela API");
       }
-      
+
       setUser(response.user);
-    } catch (error: unknown) {
-      console.error("❌ AuthContext.login erro:", error);
+    } catch (error) {
       throw error;
     }
   };
@@ -73,8 +77,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
       await authService.logout();
-    } catch (error) {
-      console.error('Erro no logout:', error);
     } finally {
       setUser(null);
     }

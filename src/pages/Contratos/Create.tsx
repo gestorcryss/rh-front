@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { contratosService } from "../../services/contratos";
 import { funcionariosService } from "../../services/funcionarios";
@@ -10,6 +11,11 @@ import Button from "../../components/ui/button/Button";
 import ContractForm from "./components/ContractForm";
 import { ContratoFormData, TipoContrato } from "./components/types";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+
+interface ApiErrorResponse {
+  message?: string;
+  errors?: Record<string, string>;
+}
 
 const CreateContrato: React.FC = () => {
   const navigate = useNavigate();
@@ -49,11 +55,12 @@ const CreateContrato: React.FC = () => {
       toast.success("Contrato criado com sucesso!");
       navigate(`/funcionarios/${funcionarioId}/contratos`);
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || "Erro ao criar contrato";
+    onError: (error: unknown) => {
+      const apiError = axios.isAxiosError<ApiErrorResponse>(error) ? error : null;
+      const message = apiError?.response?.data?.message || "Erro ao criar contrato";
       toast.error(message);
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
+      if (apiError?.response?.data?.errors) {
+        setErrors(apiError.response.data.errors);
       }
     },
   });

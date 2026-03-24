@@ -9,8 +9,6 @@ import {
   GridIcon,
   HorizontaLDots,
   ListIcon,
-  PageIcon,
-  PieChartIcon,
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
@@ -27,147 +25,103 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: SidebarSubItem[];
+};
+
+type SidebarSubItem = {
+  name: string;
+  path?: string;
+  pro?: boolean;
+  new?: boolean;
+  children?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
 // ============================================================
-// MENU PRINCIPAL
+// MENU - SISTEMA RH / FOLHA
 // ============================================================
-const mainNavItems: NavItem[] = [
-  // Dashboard
+const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Principal", path: "/dashboard", pro: false }],
+    path: "/dashboard",
   },
-
-  // Funcionários
   {
     icon: <UserCircleIcon />,
     name: "Funcionários",
     subItems: [
-      { name: "Listar Funcionários", path: "/funcionarios", pro: false },
-      { name: "Novo Funcionário", path: "/funcionarios/novo", pro: false },
-      { name: "Dados Pessoais", path: "/funcionarios/dados-pessoais", pro: false },
+      { name: "Lista de Funcionários", path: "/funcionarios" },
+      { name: "Cadastro de Funcionário", path: "/funcionarios/novo" },
+      { name: "Contratos", path: "/contratos" },
+      { name: "Estrutura Salarial", path: "/estrutura-salarial" },
     ],
   },
-
-  // Contratos
-  {
-    icon: <PageIcon />,
-    name: "Contratos",
-    subItems: [
-      { name: "Listar Contratos", path: "/contratos", pro: false },
-      { name: "Novo Contrato", path: "/contratos/novo", pro: false },
-      { name: "Versões de Contrato", path: "/contratos/versoes", pro: false },
-    ],
-  },
-
-  // Rubricas
   {
     icon: <ListIcon />,
     name: "Rubricas",
     subItems: [
-      { name: "Listar Rubricas", path: "/rubricas", pro: false },
-      { name: "Nova Rubrica", path: "/rubricas/novo", pro: false },
-      { name: "Versões de Rubrica", path: "/rubricas/versoes", pro: false },
+      { name: "Lista de Rubricas", path: "/rubricas" },
+      { name: "Nova Rubrica", path: "/rubricas/novo" },
+      { name: "Versões de Rubrica", path: "/rubricas/versoes" },
+      { name: "Regras Fiscais", path: "/rubricas/regras-fiscais" },
     ],
   },
-
-  // Estrutura Salarial
-  {
-    icon: <PieChartIcon />,
-    name: "Estrutura Salarial",
-    subItems: [
-      { name: "Minhas Estruturas", path: "/estrutura-salarial", pro: false },
-      { name: "Nova Estrutura", path: "/estrutura-salarial/novo", pro: false },
-      { name: "Itens da Estrutura", path: "/estrutura-salarial/itens", pro: false },
-    ],
-  },
-
-  // Movimentos Mensais
   {
     icon: <CalenderIcon />,
-    name: "Movimentos",
+    name: "Movimentos Mensais",
     subItems: [
-      { name: "Listar Movimentos", path: "/movimentos", pro: false },
-      { name: "Lançar Falta", path: "/movimentos/falta", pro: false },
-      { name: "Lançar Hora Extra", path: "/movimentos/hora-extra", pro: false },
-      { name: "Movimentos Pendentes", path: "/movimentos/pendentes", pro: false },
+      { name: "Lançamentos do Mês", path: "/movimentos" },
+      { name: "Faltas", path: "/movimentos/faltas" },
+      { name: "Horas Extras", path: "/movimentos/horas-extras" },
+      { name: "Bónus / Descontos", path: "/movimentos/bonus-descontos" },
     ],
   },
-
-  // Folha de Pagamento
-  {
-    icon: <TableIcon />,
-    name: "Folha de Pagamento",
-    subItems: [
-      { name: "Processamentos", path: "/processamentos", pro: false },
-      { name: "Novo Processamento", path: "/processamentos/novo", pro: false },
-      { name: "Relatório de Folha", path: "/processamentos/relatorios", pro: false },
-    ],
-  },
-];
-
-// ============================================================
-// MENU SECUNDÁRIO (OUTROS)
-// ============================================================
-const othersNavItems: NavItem[] = [
-  // Configurações do Sistema
   {
     icon: <BoxCubeIcon />,
     name: "Configurações",
     subItems: [
-      { name: "Configuração Tributária", path: "/configuracoes/tributaria", pro: false },
-      { name: "Departamentos", path: "/configuracoes/departamentos", pro: false },
-      { name: "Funções/Cargos", path: "/configuracoes/funcoes", pro: false },
-      { name: "Centros de Custo", path: "/configuracoes/centro-custo", pro: false },
-      { name: "Projetos", path: "/configuracoes/projetos", pro: false },
-      { name: "Tipos de Contrato", path: "/configuracoes/tipo-contrato", pro: false },
+      {
+        name: "Tabelas Auxiliares",
+        children: [
+          { name: "Tipos de Contrato", path: "/configuracoes/tabelas-auxiliares/tipos-contrato" },
+          { name: "Departamentos", path: "/configuracoes/tabelas-auxiliares/departamentos" },
+          { name: "Funções/Cargos", path: "/configuracoes/tabelas-auxiliares/funcoes" },
+          { name: "Centros de Custo", path: "/configuracoes/tabelas-auxiliares/centros-custo" },
+          { name: "Projetos", path: "/configuracoes/tabelas-auxiliares/projetos" },
+        ],
+      },
+      {
+        name: "⚖️ Configurações Tributárias",
+        children: [
+          { name: "Tabela IRT", path: "/configuracoes/tributarias/irt" },
+          { name: "Percentuais INSS", path: "/configuracoes/tributarias/inss" },
+          { name: "Regimes Especiais", path: "/configuracoes/tributarias/regimes-especiais" },
+        ],
+      },
+      { name: "Roles e Permissões", path: "/configuracoes/roles-permissoes" },
     ],
   },
-
-  // Relatórios
+  {
+    icon: <TableIcon />,
+    name: "Folha de Pagamento",
+    subItems: [
+      { name: "Processamento Mensal", path: "/folha/processamento" },
+      { name: "Histórico de Folhas", path: "/folha/historico" },
+      { name: "Recibos de Vencimento", path: "/folha/recibos" },
+    ],
+  },
   {
     icon: <PlugInIcon />,
     name: "Relatórios",
     subItems: [
-      { name: "Recibo de Vencimento", path: "/relatorios/recibo", pro: false },
-      { name: "Mapa de Férias", path: "/relatorios/ferias", pro: false },
-      { name: "Encargos Sociais", path: "/relatorios/encargos", pro: false },
-      { name: "Folha Mensal", path: "/relatorios/folha-mensal", pro: false },
-      { name: "Funcionários", path: "/relatorios/funcionarios", pro: false },
+      { name: "Mapa de Férias", path: "/relatorios/ferias" },
+      { name: "Encargos Sociais", path: "/relatorios/encargos" },
+      { name: "Declarações Fiscais", path: "/relatorios/declaracoes-fiscais" },
     ],
   },
-
-  // Segurança
-  {
-    icon: <BoxCubeIcon />,
-    name: "Segurança",
-    subItems: [
-      { name: "Usuários", path: "/seguranca/usuarios", pro: false },
-      { name: "Perfis (Roles)", path: "/seguranca/perfis", pro: false },
-      { name: "Permissões", path: "/seguranca/permissions", pro: false },
-      { name: "Logs de Acesso", path: "/seguranca/logs", pro: false },
-    ],
-  },
-
-  // Auditoria
   {
     icon: <ListIcon />,
     name: "Auditoria",
-    subItems: [
-      { name: "Logs de Alterações", path: "/auditoria/logs", pro: false },
-      { name: "Histórico de Processamentos", path: "/auditoria/processamentos", pro: false },
-      { name: "Relatório de Auditoria", path: "/auditoria/relatorio", pro: false },
-    ],
-  },
-
-  // Calendário de Férias
-  {
-    icon: <CalenderIcon />,
-    name: "Férias",
-    path: "/ferias",
+    subItems: [{ name: "Logs do Sistema", path: "/auditoria/logs" }],
   },
 ];
 
@@ -199,33 +153,27 @@ const AppSidebar: React.FC = () => {
     [location.pathname]
   );
 
+  const getAllPaths = useCallback((subItems: SidebarSubItem[]) => {
+    const paths: string[] = [];
+    subItems.forEach((s) => {
+      if (s.path) paths.push(s.path);
+      if (s.children) s.children.forEach((c) => paths.push(c.path));
+    });
+    return paths;
+  }, []);
+
   // Abrir submenu automaticamente se um item estiver ativo
   useEffect(() => {
     let submenuMatched = false;
 
-    // Verificar no menu principal
-    mainNavItems.forEach((nav, index) => {
+    navItems.forEach((nav, index) => {
       if (nav.subItems) {
-        nav.subItems.forEach((subItem) => {
-          if (isSubItemActive(subItem.path)) {
-            setOpenSubmenu({ type: "main", index });
-            submenuMatched = true;
-          }
-        });
-      }
-    });
-
-    // Verificar no menu others
-    othersNavItems.forEach((nav, index) => {
-      if (nav.subItems) {
-        nav.subItems.forEach((subItem) => {
-          if (isSubItemActive(subItem.path)) {
-            setOpenSubmenu({ type: "others", index });
-            submenuMatched = true;
-          }
-        });
+        const paths = getAllPaths(nav.subItems);
+        if (paths.some((p) => isSubItemActive(p))) {
+          setOpenSubmenu({ type: "main", index });
+          submenuMatched = true;
+        }
       } else if (nav.path && isSubItemActive(nav.path)) {
-        // Se for item sem submenu e estiver ativo
         submenuMatched = true;
       }
     });
@@ -233,7 +181,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location, isSubItemActive]);
+  }, [location, getAllPaths, isSubItemActive]);
 
   // Calcular altura do submenu para animação
   useEffect(() => {
@@ -344,44 +292,106 @@ const AppSidebar: React.FC = () => {
               }}
             >
               <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
-                    <Link
-                      to={subItem.path}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
-                      }`}
-                    >
-                      {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            pro
-                          </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
+                {nav.subItems.map((subItem) => {
+                  if (subItem.children && subItem.children.length > 0) {
+                    return (
+                      <li key={subItem.name} className="pt-2">
+                        <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                          {subItem.name}
+                        </div>
+                        <ul className="space-y-1 ml-3">
+                          {subItem.children.map((child) => (
+                            <li key={child.name}>
+                              <Link
+                                to={child.path}
+                                className={`menu-dropdown-item ${
+                                  isActive(child.path)
+                                    ? "menu-dropdown-item-active"
+                                    : "menu-dropdown-item-inactive"
+                                }`}
+                              >
+                                {child.name}
+                                <span className="flex items-center gap-1 ml-auto">
+                                  {child.new && (
+                                    <span
+                                      className={`ml-auto ${
+                                        isActive(child.path)
+                                          ? "menu-dropdown-badge-active"
+                                          : "menu-dropdown-badge-inactive"
+                                      } menu-dropdown-badge`}
+                                    >
+                                      new
+                                    </span>
+                                  )}
+                                  {child.pro && (
+                                    <span
+                                      className={`ml-auto ${
+                                        isActive(child.path)
+                                          ? "menu-dropdown-badge-active"
+                                          : "menu-dropdown-badge-inactive"
+                                      } menu-dropdown-badge`}
+                                    >
+                                      pro
+                                    </span>
+                                  )}
+                                </span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    );
+                  }
+
+                  if (!subItem.path) {
+                    return (
+                      <li key={subItem.name}>
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          {subItem.name}
+                        </div>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li key={subItem.name}>
+                      <Link
+                        to={subItem.path}
+                        className={`menu-dropdown-item ${
+                          isActive(subItem.path)
+                            ? "menu-dropdown-item-active"
+                            : "menu-dropdown-item-inactive"
+                        }`}
+                      >
+                        {subItem.name}
+                        <span className="flex items-center gap-1 ml-auto">
+                          {subItem.new && (
+                            <span
+                              className={`ml-auto ${
+                                isActive(subItem.path)
+                                  ? "menu-dropdown-badge-active"
+                                  : "menu-dropdown-badge-inactive"
+                              } menu-dropdown-badge`}
+                            >
+                              new
+                            </span>
+                          )}
+                          {subItem.pro && (
+                            <span
+                              className={`ml-auto ${
+                                isActive(subItem.path)
+                                  ? "menu-dropdown-badge-active"
+                                  : "menu-dropdown-badge-inactive"
+                              } menu-dropdown-badge`}
+                            >
+                              pro
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -444,7 +454,6 @@ const AppSidebar: React.FC = () => {
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
-            {/* Menu Principal */}
             <div>
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
@@ -454,30 +463,12 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "MENU PRINCIPAL"
+                  "SISTEMA RH / FOLHA"
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(mainNavItems, "main")}
-            </div>
-
-            {/* Menu Secundário */}
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "ADMINISTRAÇÃO"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersNavItems, "others")}
+              {renderMenuItems(navItems, "main")}
             </div>
           </div>
         </nav>

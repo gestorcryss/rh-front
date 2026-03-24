@@ -1,15 +1,29 @@
+import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { contratosService } from "../../services/contratos";
 import PageMeta from "../../components/common/PageMeta";
 import ComponentCard from "../../components/common/ComponentCard";
 import Button from "../../components/ui/button/Button";
 import Badge from "../../components/ui/badge/Badge";
 import VersionHistory from "./components/VersionHistory";
-import {PencilIcon } from "@heroicons/react/24/outline";
+import Modal from "../../components/ui/modal";
+import Input from "../../components/form/input/InputField";
+import Label from "../../components/form/Label";
+import { toast } from "react-toastify";
+import { PencilIcon, XMarkIcon } from "@heroicons/react/24/outline";
+
+interface ApiErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
+}
 
 const ShowContrato: React.FC = () => {
   const { contratoId } = useParams<{ contratoId: string }>();
+  const queryClient = useQueryClient();
+  const [encerrarOpen, setEncerrarOpen] = useState(false);
+  const [dataFimVigencia, setDataFimVigencia] = useState(new Date().toISOString().slice(0, 10));
 
   const { data, isLoading } = useQuery({
     queryKey: ["contrato", contratoId],
@@ -17,9 +31,35 @@ const ShowContrato: React.FC = () => {
     enabled: !!contratoId,
   });
 
-  const contrato = data?.data.data;
+  const contrato = data?.data?.data;
   console.log("Contrato carregado:", contrato);
-  const versaoAtual = contrato?.versao_atual;
+
+  // IMPORTANT: hooks must be called unconditionally (before any early returns).
+  const canEncerrar = !!contrato && !contrato.data_fim && contrato.status !== "ENCERRADO";
+
+  const encerrarContrato = useMutation({
+    mutationFn: (payload: { data_fim_vigencia: string }) =>
+      contratosService.encerrar(Number(contratoId), payload),
+    onSuccess: () => {
+      setEncerrarOpen(false);
+      toast.success("Contrato encerrado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["contrato", contratoId] });
+    },
+    onError: (error: unknown) => {
+      const apiError = axios.isAxiosError<ApiErrorResponse>(error) ? error : null;
+      const message = apiError?.response?.data?.message || "Erro ao encerrar contrato";
+      toast.error(message);
+    },
+  });
+
+  const versaoAtual = useMemo(() => {
+    const versoes = contrato?.versoes ?? [];
+    return (
+      contrato?.versao_atual ??
+      versoes.find((v: { data_fim_vigencia: string | null }) => v.data_fim_vigencia === null) ??
+      versoes.slice().sort((a: { id: number }, b: { id: number }) => b.id - a.id)[0]
+    );
+  }, [contrato]);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pt-AO");
@@ -94,6 +134,15 @@ const ShowContrato: React.FC = () => {
               Criar Nova Versão
             </Button>
           </Link>
+          {canEncerrar && (
+            <Button
+              variant="error"
+              className="ml-2"
+              onClick={() => setEncerrarOpen(true)}
+            >
+              Encerrar Contrato
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -182,6 +231,56 @@ const ShowContrato: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Modal isOpen={encerrarOpen} onClose={() => setEncerrarOpen(false)}>
+        <div className="p-6">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Encerrar Contrato
+              </h3>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Isto irá definir o fim do contrato e encerrar a versão ativa, conforme o backend.
+              </p>
+            </div>
+            <button
+              onClick={() => setEncerrarOpen(false)}
+              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              aria-label="Fechar"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Data fim vigência</Label>
+              <Input
+                type="date"
+                value={dataFimVigencia}
+                min={String(contrato.data_inicio).slice(0, 10)}
+                onChange={(e) => setDataFimVigencia(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Deve ser maior ou igual à data de início do contrato.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => setEncerrarOpen(false)} disabled={encerrarContrato.isPending}>
+                Cancelar
+              </Button>
+              <Button
+                variant="error"
+                onClick={() => encerrarContrato.mutate({ data_fim_vigencia: dataFimVigencia })}
+                disabled={encerrarContrato.isPending || !dataFimVigencia}
+              >
+                {encerrarContrato.isPending ? "Encerrando..." : "Confirmar Encerramento"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

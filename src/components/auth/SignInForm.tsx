@@ -40,21 +40,15 @@ export default function SignInForm({ onLogin, isLoading }: SignInFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log("🔐 Tentando login com:", email);
-    console.log("🔐 Senha:", password ? "***" : "vazia");
-    
+
     if (!validate()) {
-      console.log("❌ Validação falhou");
       return;
     }
 
     try {
-      console.log("📞 Chamando onLogin com:", email);
       await onLogin(email, password);
-      console.log("✅ Login processado com sucesso");
-    } catch (error) {
-      console.error("❌ Erro no formulário:", error);
+    } catch {
+      // Feedback is handled by parent screen.
     }
   };
 
@@ -89,10 +83,7 @@ export default function SignInForm({ onLogin, isLoading }: SignInFormProps) {
                 <Input
                   type="email"
                   value={email}
-                  onChange={(e) => {
-                    console.log("📝 Email alterado:", e.target.value);
-                    setEmail(e.target.value);
-                  }}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@sistema.com"
                   error={!!errors.email}
                 />
@@ -108,10 +99,7 @@ export default function SignInForm({ onLogin, isLoading }: SignInFormProps) {
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => {
-                      console.log("📝 Senha alterada");
-                      setPassword(e.target.value);
-                    }}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Digite sua senha"
                     error={!!errors.password}
                   />

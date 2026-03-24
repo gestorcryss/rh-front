@@ -1,4 +1,5 @@
 import api from './api';
+import axios from 'axios';
 
 export interface LoginCredentials {
   email: string;
@@ -14,36 +15,53 @@ export interface RegisterData {
   password_confirmation: string;
 }
 
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  ativo: boolean;
+  funcionario?: {
+    id: number;
+    nome_completo: string;
+    numero_mecanografico: string;
+  };
+  roles?: Array<{ id: number; nome: string; slug: string }>;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+  message?: string;
+}
+
+interface ApiErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
+}
+
 export const authService = {
   login: async (email: string, password: string) => {
-    console.log("📞 authService.login recebeu email:", email);
-    console.log("📞 authService.login recebeu password:", password ? "***" : "vazio");
-    
     if (!email || !password) {
-      console.error("❌ Email ou senha vazios:", { email: !!email, password: !!password });
       throw new Error("Email e senha são obrigatórios");
     }
-    
+
     try {
-      const response = await api.post('/auth/login', {
+      const response = await api.post<AuthResponse>('/auth/login', {
         email: email,
         password: password
       });
-      
-      console.log("✅ Resposta da API (status):", response.status);
-      console.log("✅ Dados da resposta:", response.data);
-      
+
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
-      
+
       return response.data;
     } catch (error: unknown) {
-      const errObj = error as any;
-      console.error("❌ Erro no authService.login:", errObj);
-      console.error("❌ Dados do erro:", errObj.response?.data);
-      throw errObj;
+      if (axios.isAxiosError<ApiErrorResponse>(error)) {
+        throw error;
+      }
+      throw new Error('Erro inesperado ao autenticar');
     }
   },
 
@@ -59,7 +77,7 @@ export const authService = {
   },
 
   register: async (data: RegisterData) => {
-    const response = await api.post('/auth/register', data);
+    const response = await api.post<AuthResponse>('/auth/register', data);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -67,7 +85,7 @@ export const authService = {
     return response.data;
   },
 
-  getUser: () => {
+  getUser: (): AuthUser | null => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
@@ -78,5 +96,27 @@ export const authService = {
 
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
+  },
+
+  getCurrentUser: async (): Promise<AuthUser> => {
+    // Backends variam bastante: alguns expõem /auth/me, outros /v1/auth/me.
+    // Tentamos os paths mais prováveis antes de falhar.
+    const paths = ['/auth/me', '/v1/auth/me'];
+    let lastError: unknown = null;
+
+    for (const path of paths) {
+      try {
+        const response = await api.get<{ user: AuthUser }>(path);
+        return response.data.user;
+      } catch (error: unknown) {
+        lastError = error;
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error('Endpoint de usuário atual não encontrado');
   },
 };

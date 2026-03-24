@@ -1,10 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-// Auth Provider
-import { AuthProvider } from "./context/AuthContext";
 
 // Auth Pages
 import SignIn from "./pages/AuthPages/SignIn";
@@ -38,9 +33,13 @@ import EditFuncionario from "./pages/Funcionarios/Edit";
 
 import ContratosList from "./pages/Contratos/List";
 import CreateContrato from "./pages/Contratos/Create";
+import ContratosAllList from "./pages/Contratos/AllList";
+import CreateContratoGlobal from "./pages/Contratos/CreateGlobal";
 import EditContrato from "./pages/Contratos/Edit";
 import ShowContrato from "./pages/Contratos/Show";
 import ShowFuncionario from "./pages/Funcionarios/Show";
+import { RubricaForm, RubricasList, RubricaVersoes } from "./pages/Rubricas";
+import RegrasFiscais from "./pages/Rubricas/RegrasFiscais";
 
 
 // ============================================================
@@ -57,61 +56,67 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* AuthProvider deve envolver o Router para que useAuth esteja disponível */}
-      <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <ToastContainer position="top-right" autoClose={3000} />
-          <Routes>
-            {/* Rotas Públicas */}
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          {/* Rotas Públicas */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
 
-            {/* Rotas Protegidas */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              {/* Dashboard */}
-              <Route index path="/" element={<Home />} />
-              <Route path="/dashboard" element={<Home />} />
+          {/* Rotas Protegidas */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            {/* Dashboard */}
+            <Route index path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Home />} />
 
-              {/* Funcionários */}
-              <Route path="/funcionarios" element={<FuncionariosList />} />
-              <Route path="/funcionarios/novo" element={<CreateFuncionario />} />
-              <Route path="/funcionarios/:id/editar" element={<EditFuncionario />} />
-              <Route path="/funcionarios/:id" element={<ShowFuncionario />} />
-              {/*
+            {/* Funcionários */}
+            <Route path="/funcionarios" element={<FuncionariosList />} />
+            <Route path="/funcionarios/novo" element={<CreateFuncionario />} />
+            <Route path="/funcionarios/:id/editar" element={<EditFuncionario />} />
+            <Route path="/funcionarios/:id" element={<ShowFuncionario />} />
+            {/*
               <Route path="/funcionarios/dados-pessoais" element={<FuncionariosList />} />
 */}
-              {/* Contratos */}
-              <Route path="/funcionarios/:funcionarioId/contratos" element={<ContratosList />} />
-              <Route path="/funcionarios/:funcionarioId/contratos/novo" element={<CreateContrato />} />
-              <Route path="/contratos/:contratoId" element={<ShowContrato />} />
-              <Route path="/contratos/:contratoId/editar" element={<EditContrato />} />
-              {/* Páginas EXISTENTES (mantidas) */}
-              <Route path="/profile" element={<UserProfiles />} />
-              <Route path="/blank" element={<Blank />} />
-              <Route path="/form-elements" element={<FormElements />} />
-              <Route path="/basic-tables" element={<BasicTables />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/avatars" element={<Avatars />} />
-              <Route path="/badge" element={<Badges />} />
-              <Route path="/buttons" element={<Buttons />} />
-              <Route path="/images" element={<Images />} />
-              <Route path="/videos" element={<Videos />} />
-              <Route path="/line-chart" element={<LineChart />} />
-              <Route path="/bar-chart" element={<BarChart />} />
+            {/* Contratos */}
+            <Route path="/contratos" element={<ContratosAllList />} />
+            <Route path="/contratos/novo" element={<CreateContratoGlobal />} />
+            <Route path="/funcionarios/:funcionarioId/contratos" element={<ContratosList />} />
+            <Route path="/funcionarios/:funcionarioId/contratos/novo" element={<CreateContrato />} />
+            <Route path="/contratos/:contratoId" element={<ShowContrato />} />
+            <Route path="/contratos/:contratoId/editar" element={<EditContrato />} />
+            {/* Páginas EXISTENTES (mantidas) */}
+            <Route path="/profile" element={<UserProfiles />} />
+            <Route path="/blank" element={<Blank />} />
+            <Route path="/form-elements" element={<FormElements />} />
+            <Route path="/basic-tables" element={<BasicTables />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/avatars" element={<Avatars />} />
+            <Route path="/badge" element={<Badges />} />
+            <Route path="/buttons" element={<Buttons />} />
+            <Route path="/images" element={<Images />} />
+            <Route path="/videos" element={<Videos />} />
+            <Route path="/line-chart" element={<LineChart />} />
+            <Route path="/bar-chart" element={<BarChart />} />
+            {/* Rubricas */}
+            <Route path="rubricas">
+              <Route index element={<RubricasList />} />
+              <Route path="novo" element={<RubricaForm />} />
+              <Route path=":id/editar" element={<RubricaForm />} />
+              <Route path=":id/versoes" element={<RubricaVersoes />} />
+              <Route path=":id/versoes/:versaoId/regras-fiscais" element={<RegrasFiscais />} />
             </Route>
+          </Route>
 
-            {/* Fallback Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
+          {/* Fallback Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
     </QueryClientProvider>
   );
 }

@@ -1,39 +1,30 @@
 import axios from 'axios';
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || 'http://localhost:8000/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  timeout: 10000, // 10 segundos de timeout
+  timeout: 10000,
 });
 
-// Interceptor para adicionar token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log("📦 Token no localStorage:", token ? "Existe" : "Não existe");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    console.error("❌ Erro no interceptor de request:", error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor para tratar erros de resposta
 api.interceptors.response.use(
-  (response) => {
-    console.log("✅ Resposta da API:", response.status, response.config.url);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error("❌ Erro na resposta:", error.response?.status, error.response?.data);
-    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -41,7 +32,6 @@ api.interceptors.response.use(
         window.location.href = '/signin';
       }
     }
-    
     return Promise.reject(error);
   }
 );
