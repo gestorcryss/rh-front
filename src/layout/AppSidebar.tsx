@@ -72,6 +72,26 @@ const navItems: NavItem[] = [
       { name: "Bónus / Descontos", path: "/movimentos/bonus-descontos" },
     ],
   },
+  // Itens adicionais para o menu
+  // Configurações, Folha de Pagamento, Relatórios, Auditoria, etc.
+  {
+    icon: <TableIcon />,
+    name: "Folha de Pagamento",
+    subItems: [
+      { name: "Processamento Mensal", path: "/folha/processamento" },
+      { name: "Histórico de Folhas", path: "/folha/historico" },
+      { name: "Recibos de Vencimento", path: "/folha/recibos" },
+    ],
+  },
+   {
+    icon: <PlugInIcon />,
+    name: "Relatórios",
+    subItems: [
+      { name: "Mapa de Férias", path: "/relatorios/ferias" },
+      { name: "Encargos Sociais", path: "/relatorios/encargos" },
+      { name: "Declarações Fiscais", path: "/relatorios/declaracoes-fiscais" },
+    ],
+  },
   {
     icon: <BoxCubeIcon />,
     name: "Configurações",
@@ -90,31 +110,13 @@ const navItems: NavItem[] = [
         name: "⚖️ Configurações Tributárias",
         children: [
           { name: "Tabela IRT", path: "/configuracoes/tributarias/irt" },
-          { name: "Percentuais INSS", path: "/configuracoes/tributarias/inss" },
-          { name: "Regimes Especiais", path: "/configuracoes/tributarias/regimes-especiais" },
         ],
       },
       { name: "Roles e Permissões", path: "/configuracoes/roles-permissoes" },
     ],
   },
-  {
-    icon: <TableIcon />,
-    name: "Folha de Pagamento",
-    subItems: [
-      { name: "Processamento Mensal", path: "/folha/processamento" },
-      { name: "Histórico de Folhas", path: "/folha/historico" },
-      { name: "Recibos de Vencimento", path: "/folha/recibos" },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Relatórios",
-    subItems: [
-      { name: "Mapa de Férias", path: "/relatorios/ferias" },
-      { name: "Encargos Sociais", path: "/relatorios/encargos" },
-      { name: "Declarações Fiscais", path: "/relatorios/declaracoes-fiscais" },
-    ],
-  },
+  
+ 
   {
     icon: <ListIcon />,
     name: "Auditoria",

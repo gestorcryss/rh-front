@@ -49,6 +49,8 @@ import Departamentos from "./pages/Configuracoes/tabelasAuxiliares/Departamentos
 import Funcoes from "./pages/Configuracoes/tabelasAuxiliares/Funcoes";
 import CentrosCusto from "./pages/Configuracoes/tabelasAuxiliares/CentrosCusto";
 import Projetos from "./pages/Configuracoes/tabelasAuxiliares/Projetos";
+import RolesPermissoes from "./pages/Configuracoes/RolesPermissoes";
+import AuditLogs from "./pages/Auditoria/AuditLogs";
 
 
 // ============================================================
@@ -131,9 +133,15 @@ export default function App() {
                 <Route path="funcoes" element={<Funcoes />} />
                 <Route path="centros-custo" element={<CentrosCusto />} />
                 <Route path="projetos" element={<Projetos />} />
+
               </Route>
+              <Route path="roles-permissoes" element={<RolesPermissoes />} />
+
             </Route>
-          </Route>    
+            <Route path="auditoria">
+              <Route path="logs" element={<AuditLogs />} />
+            </Route>
+          </Route>
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
