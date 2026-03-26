@@ -1,4 +1,6 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Auth Pages
@@ -38,6 +40,7 @@ import CreateContratoGlobal from "./pages/Contratos/CreateGlobal";
 import EditContrato from "./pages/Contratos/Edit";
 import ShowContrato from "./pages/Contratos/Show";
 import ShowFuncionario from "./pages/Funcionarios/Show";
+
 import { RegrasFiscais, RubricaForm, RubricasList, RubricaVersoes } from "./pages/Rubricas";
 import ConfigTributariaList from "./pages/Configuracoes/ConfigTributariaList";
 import TabelasAuxiliares from "./pages/Configuracoes/tabelasAuxiliares";
@@ -117,6 +120,7 @@ export default function App() {
               <Route path=":id/versoes" element={<RubricaVersoes />} />
               <Route path=":id/versoes/:versaoId/regras-fiscais" element={<RegrasFiscais />} />
             </Route>
+
             {/* Configurações */}
             <Route path="/configuracoes/tributarias/irt" element={<ConfigTributariaList />} />
             <Route path="configuracoes">
@@ -129,9 +133,7 @@ export default function App() {
                 <Route path="projetos" element={<Projetos />} />
               </Route>
             </Route>
-          </Route>
-
-
+          </Route>    
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>

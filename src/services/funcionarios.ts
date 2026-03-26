@@ -12,6 +12,7 @@ export interface Funcionario {
   updated_at: string;
 }
 
+
 export interface FuncionarioCompleto extends Funcionario {
   departamento?: { id: number; nome: string };
   funcao?: { id: number; nome: string };
@@ -25,6 +26,7 @@ export interface FuncionarioCompleto extends Funcionario {
     status: string;
   };
 }
+
 
 export interface FuncionariosListParams {
   page?: number;

@@ -1,5 +1,6 @@
 import api from "./api";
 
+
 export interface Funcao {
   id: number;
   codigo: string;
