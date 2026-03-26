@@ -31,7 +31,7 @@ export interface PaginationResponse<T> {
 }
 
 const rolesService = {
-  list: () => api.get<PaginationResponse<Role>>("/v1/roles"),
+  list: () => api.get<{ data: PaginationResponse<Role> }>("/v1/roles"),
   create: (data: Partial<Role>) => api.post("/v1/roles", data),
   update: (id: number, data: Partial<Role>) => api.put(`/v1/roles/${id}`, data),
   delete: (id: number) => api.delete(`/v1/roles/${id}`),

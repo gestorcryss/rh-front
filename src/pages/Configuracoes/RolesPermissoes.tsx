@@ -141,7 +141,8 @@ const RolesPermissoes: React.FC = () => {
     queryFn: () => rolesService.list(),
   });
 
-  const roles = data?.data.data || [];
+  const roles = data?.data.data.data || [];
+
   console.log("Roles fetched:", roles);
 
   // Mutation para criar/atualizar role
