@@ -27,6 +27,26 @@ export interface FuncionarioCompleto extends Funcionario {
   };
 }
 
+export interface FuncionariosListParams {
+  page?: number;
+  per_page?: number;
+  status?: string;
+  search?: string;
+  departamento_id?: number;
+  funcao_id?: number;
+  centro_custo_id?: number;
+}
+// Tipos para documentos
+export interface FuncionarioDocumento {
+  id: number;
+  funcionario_id: number;
+  nome: string;
+  caminho: string;
+  tipo: string;
+  categoria: string | null;
+  created_at: string;
+  url: string;  // adicionado pelo backend
+}
 
 export interface FuncionariosListParams {
   page?: number;
@@ -94,4 +114,59 @@ export const funcionariosService = {
     tipo_valor: string;
   }>;
 }) => api.post(`/v1/funcionarios/${funcionarioId}/estruturas-salariais`, data),
+
+ /**
+   * Upload da foto do funcionário
+   */
+  uploadFoto: async (funcionarioId: number, file: File): Promise<{ foto_url: string }> => {
+    const formData = new FormData();
+    formData.append('foto', file);
+    const response = await api.post(`/v1/funcionarios/${funcionarioId}/foto`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data; // { foto_url: string }
+  },
+
+  /**
+   * Upload de documento
+   */
+  uploadDocumento: async (
+    funcionarioId: number,
+    file: File,
+    categoria?: string
+  ): Promise<FuncionarioDocumento> => {
+    const formData = new FormData();
+    formData.append('documento', file);
+    if (categoria) formData.append('categoria', categoria);
+    const response = await api.post(`/v1/funcionarios/${funcionarioId}/documentos`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data;
+  },
+
+  /**
+   * Listar documentos do funcionário
+   */
+  listDocumentos: async (funcionarioId: number): Promise<FuncionarioDocumento[]> => {
+    const response = await api.get(`/v1/funcionarios/${funcionarioId}/documentos`);
+    return response.data.data;
+  },
+
+  /**
+   * Excluir documento
+   */
+  deleteDocumento: async (funcionarioId: number, documentoId: number): Promise<void> => {
+    await api.delete(`/v1/funcionarios/${funcionarioId}/documentos/${documentoId}`);
+  },
+
+  /**
+   * Exportar ficha do funcionário para PDF
+   * - Retorna um blob para download
+   */
+  exportarPDF: async (funcionarioId: number): Promise<Blob> => {
+    const response = await api.get(`/v1/funcionarios/${funcionarioId}/export-pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };

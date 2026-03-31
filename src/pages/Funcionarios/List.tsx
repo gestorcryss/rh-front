@@ -105,6 +105,7 @@ const FuncionariosList: React.FC = () => {
   // Extrair dados corretamente
   const funcionariosRaw = funcionariosData?.data?.data?.data;
   const funcionarios = Array.isArray(funcionariosRaw) ? funcionariosRaw : [];
+  console.log("👥 Funcionários extraídos:", funcionarios);
   const meta = funcionariosData?.data?.data ?? null;
   
   const departamentos = departamentosData?.data?.data.data || departamentosData?.data || [];

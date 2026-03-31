@@ -51,6 +51,8 @@ import CentrosCusto from "./pages/Configuracoes/tabelasAuxiliares/CentrosCusto";
 import Projetos from "./pages/Configuracoes/tabelasAuxiliares/Projetos";
 import RolesPermissoes from "./pages/Configuracoes/RolesPermissoes";
 import AuditLogs from "./pages/Auditoria/AuditLogs";
+import MovimentosMensaisList from "./pages/MovimentosMensais/List";
+import MovimentoMensalForm from "./pages/MovimentosMensais/Form";
 
 
 // ============================================================
@@ -122,6 +124,11 @@ export default function App() {
               <Route path=":id/versoes" element={<RubricaVersoes />} />
               <Route path=":id/versoes/:versaoId/regras-fiscais" element={<RegrasFiscais />} />
             </Route>
+
+            {/* Movimentos Mensais */}
+            <Route path="/movimentos" element={<MovimentosMensaisList />} />
+            <Route path="/movimentos-mensais/novo" element={<MovimentoMensalForm />} />
+            <Route path="/movimentos-mensais/:id/editar" element={<MovimentoMensalForm />} />
 
             {/* Configurações */}
             <Route path="/configuracoes/tributarias/irt" element={<ConfigTributariaList />} />

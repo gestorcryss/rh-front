@@ -7,6 +7,7 @@ import ComponentCard from "../../components/common/ComponentCard";
 import Button from "../../components/ui/button/Button";
 import Badge from "../../components/ui/badge/Badge";
 import { HTMLExportModal } from "./components/HTMLExport";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeftIcon,
   PencilIcon,
@@ -20,6 +21,10 @@ const ShowFuncionario: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const funcionarioId = Number(id);
   const [showExportModal, setShowExportModal] = useState(false);
+  const queryClient = useQueryClient();
+
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [docFile, setDocFile] = useState<File | null>(null);
 
   // Buscar dados do funcionário
   const { data, isLoading, isError } = useQuery({
@@ -29,25 +34,26 @@ const ShowFuncionario: React.FC = () => {
   });
 
   const funcionario = data?.data.data;
-  
+
+
   // Dados pessoais atuais (primeiro registro com data_fim_vigencia = null)
   const dadosPessoaisAtuais = funcionario?.dados_pessoais?.find(
     (d: any) => d.data_fim_vigencia === null
   ) || funcionario?.dados_pessoais?.[0];
-  
+
   // Contrato ativo (status ATIVO)
   const contratoAtivo = funcionario?.contratos?.find(
     (c: any) => c.status === "ATIVO"
   );
-  
+
   // Versão ativa do contrato
   const versaoAtiva = contratoAtivo?.versoes?.find(
     (v: any) => v.data_fim_vigencia === null
   ) || contratoAtivo?.versoes?.[0];
-  
+
   // Estrutura salarial ativa
   const estruturaAtiva = funcionario?.estrutura_salarial_ativa;
-  
+
   const formatCurrency = (value: string | number) => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
     if (isNaN(numValue)) return "-";
@@ -81,48 +87,60 @@ const ShowFuncionario: React.FC = () => {
     }
   };
 
-  const handlePrint = () => {
-    const printContent = document.getElementById("ficha-funcionario");
-    if (printContent) {
-      const printWindow = window.open("", "_blank");
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Ficha_${funcionario?.numero_mecanografico}</title>
-              <style>
-                body { 
-                  font-family: Arial, sans-serif; 
-                  padding: 20px;
-                  margin: 0;
-                }
-                @media print {
-                  body { margin: 0; padding: 0; }
-                  .no-print { display: none; }
-                }
-                .badge {
-                  display: inline-block;
-                  padding: 2px 8px;
-                  border-radius: 9999px;
-                  font-size: 12px;
-                  font-weight: 600;
-                }
-                .badge-success { background: #10b981; color: white; }
-                .badge-error { background: #ef4444; color: white; }
-                .badge-warning { background: #f59e0b; color: white; }
-              </style>
-            </head>
-            <body>
-              ${printContent.outerHTML}
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
+  const uploadFotoMutation = useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append("foto", file);
+      return funcionariosService.uploadFoto(funcionarioId, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["funcionario", funcionarioId]);
+      setFotoFile(null);
+    },
+  });
+
+  const uploadDocumentoMutation = useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append("documento", file);
+      return funcionariosService.uploadDocumento(funcionarioId, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["funcionario", funcionarioId]);
+      setDocFile(null);
+    },
+  });
+
+  const handlePrint = async () => {
+  try {
+    const blob = await funcionariosService.exportarPDF(funcionarioId);
+
+    // Criar URL temporária do arquivo
+    const url = window.URL.createObjectURL(blob);
+
+    // Abrir em nova aba
+    const printWindow = window.open(url);
+
+    if (printWindow) {
+      // Esperar carregar e disparar impressão
+      printWindow.onload = () => {
+        printWindow.focus();
         printWindow.print();
-        printWindow.close();
-      }
+      };
+    } else {
+      alert("Por favor, permita pop-ups para imprimir o documento.");
     }
-  };
+
+    // Opcional: liberar memória depois de um tempo
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 10000);
+
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    alert("Erro ao gerar o PDF.");
+  }
+};
 
   if (isLoading) {
     return (
@@ -190,6 +208,29 @@ const ShowFuncionario: React.FC = () => {
         <div id="ficha-funcionario" className="space-y-6">
           {/* Dados Pessoais */}
           <ComponentCard title="Dados Pessoais" >
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src={"http://localhost:8000/storage/" + funcionario.foto || "/placeholder-user.png"}
+                alt="Foto"
+                className="h-40 w-40 rounded-full object-cover border"
+              />
+              <div className="flex items-center gap-2 text-xs bg-gray-200 text-blue-800 px-2 py-1 rounded">
+                <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
+              />
+              </div>
+              
+
+              <Button
+                variant="primary"
+                disabled={!fotoFile || uploadFotoMutation.isPending}
+                onClick={() => fotoFile && uploadFotoMutation.mutate(fotoFile)}
+              >
+                Atualizar Foto
+              </Button>
+            </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <p className="text-sm text-gray-500">Gênero</p>
@@ -309,7 +350,7 @@ const ShowFuncionario: React.FC = () => {
                         <th className="py-2 text-left text-sm font-semibold text-gray-600">Código</th>
                         <th className="py-2 text-right text-sm font-semibold text-gray-600">Valor</th>
                         <th className="py-2 text-right text-sm font-semibold text-gray-600">Tipo</th>
-                       </tr>
+                      </tr>
                     </thead>
                     <tbody>
                       {estruturaAtiva.itens.map((item: any, index: number) => (
@@ -322,9 +363,9 @@ const ShowFuncionario: React.FC = () => {
                               : formatCurrency(item.valor)}
                           </td>
                           <td className="py-2 text-right text-sm text-gray-500">
-                            {item.tipo_valor === "FIXO" ? "Fixo" : 
-                             item.tipo_valor === "PERCENTUAL" ? "Percentual" : 
-                             item.tipo_valor === "FORMULA" ? "Fórmula" : "Informativo"}
+                            {item.tipo_valor === "FIXO" ? "Fixo" :
+                              item.tipo_valor === "PERCENTUAL" ? "Percentual" :
+                                item.tipo_valor === "FORMULA" ? "Fórmula" : "Informativo"}
                           </td>
                         </tr>
                       ))}
@@ -363,14 +404,13 @@ const ShowFuncionario: React.FC = () => {
                   return (
                     <div
                       key={index}
-                      className={`rounded-lg border p-3 ${
-                        isActive ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800"
-                      }`}
+                      className={`rounded-lg border p-3 ${isActive ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800"
+                        }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                           <p className="font-medium">
-                            {c.tipo_contrato?.nome || "Contrato"} 
+                            {c.tipo_contrato?.nome || "Contrato"}
                             {isActive && <span className="ml-2 text-xs text-primary">(Atual)</span>}
                           </p>
                           <p className="text-sm text-gray-500">
@@ -421,6 +461,53 @@ const ShowFuncionario: React.FC = () => {
               </div>
             </ComponentCard>
           )}
+
+          <ComponentCard title="Documentos">
+            <div className="space-y-4">
+
+              {/* Upload */}
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  onChange={(e) => setDocFile(e.target.files?.[0] || null)}
+                />
+                <Button
+                  variant="primary"
+                  disabled={!docFile || uploadDocumentoMutation.isPending}
+                  onClick={() => docFile && uploadDocumentoMutation.mutate(docFile)}
+                >
+                  Adicionar
+                </Button>
+              </div>
+
+              {/* Lista */}
+              {funcionario.documentos && funcionario.documentos.length > 0 ? (
+                <div className="space-y-2">
+                  {funcionario.documentos.map((doc: any) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between border rounded p-2"
+                    >
+                      <div>
+                        <p className="font-medium">{doc.nome}</p>
+                        <p className="text-xs text-gray-500">
+                          {formatDateTime(doc.created_at)}
+                        </p>
+                      </div>
+
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline">
+                          <DocumentArrowDownIcon className="h-4 w-4" />
+                        </Button>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">Nenhum documento enviado</p>
+              )}
+            </div>
+          </ComponentCard>
         </div>
       </div>
 

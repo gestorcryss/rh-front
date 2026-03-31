@@ -3,6 +3,9 @@ export interface BasicInfoForm {
   nome_completo: string;
   status: "ATIVO" | "INATIVO" | "SUSPENSO";
   email?: string;
+  departamento_id?: string | number;
+  funcao_id?: string;
+  centro_custo_id?: string;
   username?: string;
 }
 

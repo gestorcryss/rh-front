@@ -16,7 +16,6 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 // Importar componentes das etapas
 import StepBasicInfo from "./components/StepBasicInfo";
 import StepPersonalData from "./components/StepPersonalData";
-import StepProfessionalData from "./components/StepProfessionalData";
 import StepContract from "./components/StepContract";
 import StepSalaryStructure from "./components/StepSalaryStructure";
 import {
@@ -31,16 +30,14 @@ import {
 const steps = [
   { id: 1, title: "Dados Básicos", description: "Informações principais" },
   { id: 2, title: "Dados Pessoais", description: "Documentos e identificação" },
-  { id: 3, title: "Dados Profissionais", description: "Departamento e função" },
-  { id: 4, title: "Contrato", description: "Informações contratuais" },
-  { id: 5, title: "Estrutura Salarial", description: "Rubricas e benefícios" },
+  { id: 3, title: "Contrato", description: "Informações contratuais" },
+  { id: 4, title: "Estrutura Salarial", description: "Rubricas e benefícios" },
 ];
 
 // Interface para os dados originais (para comparar mudanças)
 interface OriginalData {
   basicInfo: BasicInfoForm;
   personalData: PersonalDataForm;
-  professionalData: ProfessionalDataForm;
   contract: {
     salario_base: string;
     carga_horaria: string;
@@ -69,6 +66,10 @@ const EditFuncionario: React.FC = () => {
     status: "ATIVO",
     email: "",
     username: "",
+    departamento_id: "",
+    funcao_id: "",
+    centro_custo_id: "",
+
   });
 
   const [personalData, setPersonalData] = useState<PersonalDataForm>({
@@ -82,11 +83,6 @@ const EditFuncionario: React.FC = () => {
     inss_numero: "",
   });
 
-  const [professionalData, setProfessionalData] = useState<ProfessionalDataForm>({
-    departamento_id: "",
-    funcao_id: "",
-    centro_custo_id: "",
-  });
 
   const [contractData, setContractData] = useState<ContractForm>({
     tipo_contrato_id: "",
@@ -154,6 +150,9 @@ const EditFuncionario: React.FC = () => {
       status: f.status || "ATIVO",
       email: f.usuario?.email || "",
       username: f.usuario?.username || "",
+      departamento_id: f.departamento_id ? String(f.departamento_id) : "",
+      funcao_id: f.funcao_id ? String(f.funcao_id) : "",
+      centro_custo_id: f.centro_custo_id ? String(f.centro_custo_id) : "",
     });
 
     // 2. Dados Pessoais
@@ -170,14 +169,8 @@ const EditFuncionario: React.FC = () => {
       inss_numero: dadosPessoais.inss_numero || "",
     });
 
-    // 3. Dados Profissionais
-    setProfessionalData({
-      departamento_id: f.departamento_id ? String(f.departamento_id) : "",
-      funcao_id: f.funcao_id ? String(f.funcao_id) : "",
-      centro_custo_id: f.centro_custo_id ? String(f.centro_custo_id) : "",
-    });
-
-    // 4. Contrato Atual
+    
+    // 3. Contrato Atual
     const contratoAtual = f.contrato_atual;
     const versaoAtual = contratoAtual?.versao_atual;
 
@@ -192,7 +185,7 @@ const EditFuncionario: React.FC = () => {
       });
     }
 
-    // 5. Estrutura Salarial Atual
+    // 4. Estrutura Salarial Atual
     const estruturaAtual = f.estrutura_atual;
     if (estruturaAtual?.itens) {
       setSalaryStructure({
@@ -212,6 +205,9 @@ const EditFuncionario: React.FC = () => {
         status: f.status || "ATIVO",
         email: f.usuario?.email || "",
         username: f.usuario?.username || "",
+        departamento_id: f.departamento_id ? String(f.departamento_id) : "",
+        funcao_id: f.funcao_id ? String(f.funcao_id) : "",
+        centro_custo_id: f.centro_custo_id ? String(f.centro_custo_id) : "",
       },
       personalData: {
         genero: dadosPessoais.genero || "",
@@ -222,11 +218,6 @@ const EditFuncionario: React.FC = () => {
         validade_documento: dadosPessoais.validade_documento || "",
         nif: dadosPessoais.nif || "",
         inss_numero: dadosPessoais.inss_numero || "",
-      },
-      professionalData: {
-        departamento_id: f.departamento_id ? String(f.departamento_id) : "",
-        funcao_id: f.funcao_id ? String(f.funcao_id) : "",
-        centro_custo_id: f.centro_custo_id ? String(f.centro_custo_id) : "",
       },
       contract: {
         salario_base: String(versaoAtual?.salario_base || ""),
@@ -254,7 +245,10 @@ const EditFuncionario: React.FC = () => {
       basicInfo.nome_completo !== originalData.basicInfo.nome_completo ||
       basicInfo.status !== originalData.basicInfo.status ||
       basicInfo.email !== originalData.basicInfo.email ||
-      basicInfo.username !== originalData.basicInfo.username
+      basicInfo.username !== originalData.basicInfo.username ||
+      basicInfo.departamento_id !== originalData.basicInfo.departamento_id ||
+      basicInfo.funcao_id !== originalData.basicInfo.funcao_id ||
+      basicInfo.centro_custo_id !== originalData.basicInfo.centro_custo_id
     );
   };
 
@@ -269,15 +263,6 @@ const EditFuncionario: React.FC = () => {
       personalData.validade_documento !== originalData.personalData.validade_documento ||
       personalData.nif !== originalData.personalData.nif ||
       personalData.inss_numero !== originalData.personalData.inss_numero
-    );
-  };
-
-  const hasProfessionalDataChanged = (): boolean => {
-    if (!originalData) return false;
-    return (
-      professionalData.departamento_id !== originalData.professionalData.departamento_id ||
-      professionalData.funcao_id !== originalData.professionalData.funcao_id ||
-      professionalData.centro_custo_id !== originalData.professionalData.centro_custo_id
     );
   };
 
@@ -330,6 +315,9 @@ const EditFuncionario: React.FC = () => {
         numero_mecanografico: data.numero_mecanografico,
         nome_completo: data.nome_completo,
         status: data.status,
+        departamento_id: data.departamento_id ? Number(data.departamento_id) : undefined,
+        funcao_id: data.funcao_id ? Number(data.funcao_id) : undefined,
+        centro_custo_id: data.centro_custo_id ? Number(data.centro_custo_id) : undefined,
       }),
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Erro ao atualizar dados básicos");
@@ -349,17 +337,7 @@ const EditFuncionario: React.FC = () => {
     },
   });
 
-  const updateProfessionalData = useMutation({
-    mutationFn: (data: ProfessionalDataForm) =>
-      funcionariosService.update(funcionarioId, {
-        departamento_id: data.departamento_id ? Number(data.departamento_id) : undefined,
-        funcao_id: data.funcao_id ? Number(data.funcao_id) : undefined,
-        centro_custo_id: data.centro_custo_id ? Number(data.centro_custo_id) : undefined,
-      }),
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Erro ao atualizar dados profissionais");
-    },
-  });
+
 
   const createNewContract = useMutation({
     mutationFn: (data: ContractForm) =>
@@ -443,14 +421,10 @@ const EditFuncionario: React.FC = () => {
         toast.success("Dados pessoais atualizados!");
       }
 
-      // Step 3: Dados Profissionais
-      if (currentStep === 3 && hasProfessionalDataChanged()) {
-        await updateProfessionalData.mutateAsync(professionalData);
-        toast.success("Dados profissionais atualizados!");
-      }
+     
 
-      // Step 4: Contrato - SOMENTE SE HOUVE MUDANÇA (cria nova versão)
-      if (currentStep === 4) {
+      // Step 3: Contrato - SOMENTE SE HOUVE MUDANÇA (cria nova versão)
+      if (currentStep === 3) {
         if (hasContractChanged()) {
           await createNewContract.mutateAsync(contractData);
           toast.success("Nova versão do contrato criada!");
@@ -459,8 +433,8 @@ const EditFuncionario: React.FC = () => {
         }
       }
 
-      // Step 5: Estrutura Salarial - SOMENTE SE HOUVE MUDANÇA (cria nova versão)
-      if (currentStep === 5) {
+      // Step 4: Estrutura Salarial - SOMENTE SE HOUVE MUDANÇA (cria nova versão)
+      if (currentStep === 4) {
         if (hasSalaryStructureChanged()) {
           await createNewSalaryStructure.mutateAsync(salaryStructure);
           toast.success("Nova versão da estrutura salarial criada!");
@@ -499,8 +473,7 @@ const EditFuncionario: React.FC = () => {
     return false;
   };
 
-  const isLoading = updateFuncionario.isPending || updateDadosPessoais.isPending ||
-                    updateProfessionalData.isPending || createNewContract.isPending ||
+  const isLoading = updateFuncionario.isPending || updateDadosPessoais.isPending || createNewContract.isPending ||
                     createNewSalaryStructure.isPending;
 
   if (loadingFuncionario || isLoadingData) {
@@ -557,7 +530,9 @@ const EditFuncionario: React.FC = () => {
           {currentStep === 1 && (
             <StepBasicInfo
               data={basicInfo}
-             
+             departamentos={departamentos}
+              funcoes={funcoes}
+              isLoading={false}
                onChange={(p) =>
               setBasicInfo((prev) => ({ ...prev, ...p }))
             }
@@ -567,37 +542,27 @@ const EditFuncionario: React.FC = () => {
 
           {currentStep === 2 && (
             <StepPersonalData
-              data={personalData}
-              onChange={setPersonalData}
-              
-              
+              data={personalData}            
+               onChange={(p) => setPersonalData((prev) => ({ ...prev, ...p }))}
             />
           )}
+
+          
 
           {currentStep === 3 && (
-            <StepProfessionalData
-              data={professionalData}
-              onChange={setProfessionalData}
-              departamentos={departamentos}
-              funcoes={funcoes}
-              isLoading={false}
-            />
-          )}
-
-          {currentStep === 4 && (
             <StepContract
               data={contractData}
-              onChange={handleContractDataChange}
+              onChange={(p: Partial<ContractForm>) => handleContractDataChange(p)}
               tiposContrato={tiposContrato}
               errors={errors}
               isLoading={false}
             />
           )}
 
-          {currentStep === 5 && (
+          {currentStep === 4 && (
             <StepSalaryStructure
               data={salaryStructure}
-              onChange={setSalaryStructure}
+              onChange={(p) => setSalaryStructure((prev) => ({ ...prev, ...p }))}
               rubricas={rubricas}
               salarioBase={Number(contractData.salario_base)}
               isLoading={false}
@@ -617,11 +582,7 @@ const EditFuncionario: React.FC = () => {
                   📄 Dados pessoais alterados
                 </span>
               )}
-              {hasProfessionalDataChanged() && (
-                <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                  💼 Dados profissionais alterados
-                </span>
-              )}
+             
               {hasContractChanged() && (
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                   📑 Contrato alterado (nova versão)

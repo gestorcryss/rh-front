@@ -14,18 +14,14 @@ import ComponentCard from "../../components/common/ComponentCard";
 import Button from "../../components/ui/button/Button";
 import ProgressSteps from "../../components/ui/wizard/ProgressSteps";
 
-
-
 import StepBasicInfo from "./components/StepBasicInfo";
 import StepPersonalData from "./components/StepPersonalData";
-import StepProfessionalData from "./components/StepProfessionalData";
 import StepContract from "./components/StepContract";
 import StepSalaryStructure from "./components/StepSalaryStructure";
 
 import {
   BasicInfoForm,
   PersonalDataForm,
-  ProfessionalDataForm,
   ContractForm,
   SalaryStructureForm,
 } from "./components/types";
@@ -33,9 +29,8 @@ import {
 const steps = [
   { id: 1, title: "Dados Básicos" },
   { id: 2, title: "Dados Pessoais" },
-  { id: 3, title: "Dados Profissionais" },
-  { id: 4, title: "Contrato" },
-  { id: 5, title: "Estrutura Salarial" },
+  { id: 3, title: "Contrato" },
+  { id: 4, title: "Estrutura Salarial" },
 ];
 
 const CreateFuncionario: React.FC = () => {
@@ -52,6 +47,9 @@ const CreateFuncionario: React.FC = () => {
     nome_completo: "",
     status: "ATIVO",
     email: "",
+    departamento_id: "",
+    funcao_id: "",
+    centro_custo_id: "",
     username: "",
   });
 
@@ -65,13 +63,6 @@ const CreateFuncionario: React.FC = () => {
     nif: "",
     inss_numero: "",
   });
-
-  const [professionalData, setProfessionalData] =
-    useState<ProfessionalDataForm>({
-      departamento_id: "",
-      funcao_id: "",
-      centro_custo_id: "",
-    });
 
   const [contractData, setContractData] = useState<ContractForm>({
     tipo_contrato_id: "",
@@ -106,10 +97,10 @@ const CreateFuncionario: React.FC = () => {
     queryFn: () => rubricasService.list(),
   });
 
-  const departamentos = departamentosData?.data?.data || [];
-  const funcoes = funcoesData?.data?.data || [];
-  const tiposContrato = tiposContratoData?.data?.data || [];
-  const rubricas = (rubricasData?.data?.data || []) as {
+  const departamentos = departamentosData?.data?.data.data || [];
+  const funcoes = funcoesData?.data?.data.data || [];
+  const tiposContrato = tiposContratoData?.data?.data.data || [];
+  const rubricas = (rubricasData?.data?.data.data || []) as {
     id: number;
     codigo: string;
     nome: string;
@@ -121,6 +112,8 @@ const CreateFuncionario: React.FC = () => {
   const createFuncionario = useMutation({
     mutationFn: funcionariosService.create,
     onSuccess: (res) => {
+      console.log(res.data.data.id)
+      console.log("Criando funcionário com dados:", basicInfo);
       setFuncionarioId(res.data.data.id);
       toast.success("Funcionário criado!");
     },
@@ -136,16 +129,6 @@ const CreateFuncionario: React.FC = () => {
     },
   });
 
-  const updateProfessional = useMutation({
-    mutationFn: (data: ProfessionalDataForm) => {
-      if (!funcionarioId) throw new Error("Funcionário não existe");
-      return funcionariosService.update(funcionarioId, {
-        departamento_id: data.departamento_id ? Number(data.departamento_id) : undefined,
-        funcao_id: data.funcao_id ? Number(data.funcao_id) : undefined,
-        centro_custo_id: data.centro_custo_id ? Number(data.centro_custo_id) : undefined,
-      });
-    },
-  });
 
   const createContrato = useMutation({
     mutationFn: (data: ContractForm) => {
@@ -187,12 +170,20 @@ const CreateFuncionario: React.FC = () => {
         err.nome_completo = "Obrigatório";
     }
 
-    if (currentStep === 3) {
-      if (!professionalData.departamento_id)
+    if (currentStep === 1) {
+      if (!basicInfo.departamento_id)
         err.departamento_id = "Obrigatório";
     }
+    if (currentStep === 1) {
+      if (!basicInfo.email)
+        err.email = "Obrigatório";
+    }
+    if (currentStep === 1) {
+      if (!basicInfo.username)
+        err.username = "Obrigatório";
+    }
 
-    if (currentStep === 4) {
+    if (currentStep === 3) {
       if (!contractData.tipo_contrato_id)
         err.tipo_contrato_id = "Obrigatório";
       if (!contractData.salario_base)
@@ -209,7 +200,12 @@ const CreateFuncionario: React.FC = () => {
 
     try {
       if (currentStep === 1 && !funcionarioId) {
-        await createFuncionario.mutateAsync(basicInfo);
+        await createFuncionario.mutateAsync({
+          ...basicInfo,
+          departamento_id: basicInfo.departamento_id ? Number(basicInfo.departamento_id) : undefined,
+          funcao_id: basicInfo.funcao_id ? Number(basicInfo.funcao_id) : undefined,
+          centro_custo_id: basicInfo.centro_custo_id ? Number(basicInfo.centro_custo_id) : undefined,
+        });
       }
 
       if (currentStep === 2 && funcionarioId) {
@@ -217,14 +213,10 @@ const CreateFuncionario: React.FC = () => {
       }
 
       if (currentStep === 3 && funcionarioId) {
-        await updateProfessional.mutateAsync(professionalData);
-      }
-
-      if (currentStep === 4 && funcionarioId) {
         await createContrato.mutateAsync(contractData);
       }
 
-      if (currentStep === 5 && funcionarioId) {
+      if (currentStep === 4 && funcionarioId) {
         if (salaryStructure.itens.length) {
           await createEstrutura.mutateAsync(salaryStructure);
         }
@@ -258,6 +250,8 @@ const CreateFuncionario: React.FC = () => {
             onChange={(p) =>
               setBasicInfo((prev) => ({ ...prev, ...p }))
             }
+            departamentos={departamentos}
+            funcoes={funcoes}
             errors={errors}
           />
         )}
@@ -271,18 +265,8 @@ const CreateFuncionario: React.FC = () => {
           />
         )}
 
-        {currentStep === 3 && (
-          <StepProfessionalData
-            data={professionalData}
-            onChange={(p) =>
-              setProfessionalData((prev) => ({ ...prev, ...p }))
-            }
-            departamentos={departamentos}
-            funcoes={funcoes}
-          />
-        )}
 
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <StepContract
             data={contractData}
             onChange={(p) =>
@@ -293,7 +277,7 @@ const CreateFuncionario: React.FC = () => {
           />
         )}
 
-        {currentStep === 5 && (
+        {currentStep === 4 && (
           <StepSalaryStructure
             data={salaryStructure}
             onChange={(p) =>
@@ -310,7 +294,7 @@ const CreateFuncionario: React.FC = () => {
           </Button>
 
           <Button onClick={next}>
-            {currentStep === 5 ? "Finalizar" : "Próximo"}
+            {currentStep === 4 ? "Finalizar" : "Próximo"}
           </Button>
         </div>
       </ComponentCard>
